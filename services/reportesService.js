@@ -4,7 +4,7 @@ import { TIPOS, LISTA_TIPOS, ESTADOS } from "../constants/tipos";
 import { CALLES_H, CALLES_V, ajustarPunto } from "../constants/barrio";
 
 const CLAVE = "reporteya.v1";
-const MAX_REPORTES = 60;
+const MAX_REPORTES = 18;
 
 const oyentes = new Set();
 let estado = { incidentes: [], seq: 0, ultimoNuevo: null, confirmados: [] };

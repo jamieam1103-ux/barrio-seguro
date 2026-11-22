@@ -54,6 +54,7 @@ export default function MapaBarrio({
         top: Math.max(4, y * e - 10),
         width: 210,
         alignItems: "center",
+        zIndex: 15,
       }}
     >
       <View style={[styles.etiqueta, rojo && styles.etiquetaRoja]}>
@@ -83,7 +84,9 @@ export default function MapaBarrio({
     }
   }
 
-  const insegura = capas.risk ? zonaMasInsegura(incidentes) : null;
+  // Solo considerar robos activos para las zonas rojas de riesgo
+  const robosActivos = incidentes.filter((i) => i.tipo === "robo" && i.estado !== "resuelto");
+  const insegura = capas.risk ? zonaMasInsegura(robosActivos) : null;
 
   return (
     <Pressable
@@ -97,6 +100,7 @@ export default function MapaBarrio({
     >
       {ancho > 0 ? (
         <>
+          {/* FONDO DEL BARRIO */}
           <View style={[StyleSheet.absoluteFill, SOLO_DECORACION]}>
             <View
               style={[
@@ -131,9 +135,10 @@ export default function MapaBarrio({
             ))}
           </View>
 
+          {/* CAPAS DE ILUMINACIÓN, RUTA Y ZONAS ROJAS (SOLO ROBOS) */}
           <View style={[StyleSheet.absoluteFill, SOLO_DECORACION]}>
             {capas.lit
-              ? circulo(ZONA_ILUMINADA.x, ZONA_ILUMINADA.y, ZONA_ILUMINADA.r, "rgba(46,196,109,0.25)", "lit")
+              ? circulo(ZONA_ILUMINADA.x, ZONA_ILUMINADA.y, ZONA_ILUMINADA.r, "rgba(46,196,109,0.22)", "lit")
               : null}
 
             {capas.route
@@ -146,10 +151,9 @@ export default function MapaBarrio({
               : null}
 
             {capas.risk
-              ? incidentes.map((i) => {
+              ? robosActivos.map((i) => {
                   const w = pesoUrgencia(i.urgencia);
-                  const alfa = (0.14 + w * 0.06).toFixed(2);
-                  return circulo(i.x, i.y, 42 + w * 14, `rgba(226,59,59,${alfa})`, `r${i.id}`);
+                  return circulo(i.x, i.y, 28 + w * 8, "rgba(226,59,59,0.20)", `r${i.id}`);
                 })
               : null}
 
@@ -157,20 +161,14 @@ export default function MapaBarrio({
               ? etiqueta(ZONA_ILUMINADA.x, ZONA_ILUMINADA.y + 10, "Zona iluminada (bajo riesgo)", false, "el")
               : null}
             {insegura
-              ? etiqueta(insegura.x, insegura.y - 34, "Zona insegura (según reportes)", true, "ei")
+              ? etiqueta(insegura.x, insegura.y - 34, "Zona insegura (alertas de robo)", true, "ei")
               : null}
-
-            {capas.me ? (
-              <>
-                {circulo(MI_UBICACION.x, MI_UBICACION.y, 14, "rgba(47,127,209,0.25)", "me1")}
-                <View style={[styles.yo, { left: MI_UBICACION.x * e - 8, top: MI_UBICACION.y * e - 8 }]} />
-              </>
-            ) : null}
           </View>
 
+          {/* PINES DE INCIDENCIAS */}
           {incidentes.map((i) => {
             const seleccionado = i.id === seleccionadoId;
-            const tam = seleccionado ? 38 : 30;
+            const tam = seleccionado ? 36 : 28;
             const t = TIPOS[i.tipo] || Object.values(TIPOS);
             return (
               <Pressable
@@ -186,17 +184,41 @@ export default function MapaBarrio({
                     left: i.x * e - tam / 2,
                     top: i.y * e - tam / 2,
                     backgroundColor: t.color,
+                    zIndex: seleccionado ? 12 : 5,
                   },
                   seleccionado && { borderColor: COLORES.barra, borderWidth: 3 },
                 ]}
               >
-                <MaterialIcons name={t.icono} size={seleccionado ? 20 : 16} color="#FFF" />
+                <MaterialIcons name={t.icono} size={seleccionado ? 19 : 15} color="#FFF" />
               </Pressable>
             );
           })}
 
+          {/* MI UBICACIÓN (SIEMPRE POR ENCIMA DE LOS PINES) */}
+          {capas.me ? (
+            <View style={[StyleSheet.absoluteFill, SOLO_DECORACION, { zIndex: 25 }]}>
+              {circulo(MI_UBICACION.x, MI_UBICACION.y, 18, "rgba(37, 99, 235, 0.28)", "me1")}
+              <View style={[styles.yo, { left: MI_UBICACION.x * e - 10, top: MI_UBICACION.y * e - 10 }]} />
+              <View
+                style={[
+                  styles.yoBadge,
+                  { left: MI_UBICACION.x * e - 22, top: MI_UBICACION.y * e + 12 },
+                ]}
+              >
+                <Text style={styles.yoTexto}>Tú</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {/* MARCADOR AL CREAR REPORTE */}
           {pin ? (
-            <View style={[styles.marcador, SOLO_DECORACION, { left: pin.x * e - 20, top: pin.y * e - 38 }]}>
+            <View
+              style={[
+                styles.marcador,
+                SOLO_DECORACION,
+                { left: pin.x * e - 20, top: pin.y * e - 38, zIndex: 30 },
+              ]}
+            >
               <MaterialIcons name="place" size={40} color={COLORES.peligro} />
             </View>
           ) : null}
@@ -267,18 +289,32 @@ const styles = StyleSheet.create({
   },
   yo: {
     position: "absolute",
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: "#2F7FD1",
-    borderWidth: 2.5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#2563EB",
+    borderWidth: 3,
     borderColor: "#FFF",
+    elevation: 8,
+  },
+  yoBadge: {
+    position: "absolute",
+    width: 44,
+    backgroundColor: "#1E3A8A",
+    borderRadius: 6,
+    paddingVertical: 1,
+    alignItems: "center",
+  },
+  yoTexto: {
+    color: "#FFF",
+    fontSize: 9,
+    fontWeight: "bold",
   },
   pin: {
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2.5,
+    borderWidth: 2,
     borderColor: "#FFF",
     elevation: 3,
   },
