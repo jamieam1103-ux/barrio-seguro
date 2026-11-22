@@ -3,8 +3,8 @@ import { BASE, DESC_SIMULADOS } from "../constants/datosEjemplo";
 import { TIPOS, LISTA_TIPOS, ESTADOS } from "../constants/tipos";
 import { CALLES_H, CALLES_V, ajustarPunto } from "../constants/barrio";
 
-const CLAVE = "reporteya.v1";
-const MAX_REPORTES = 18;
+const CLAVE = "barrioseguro.v1";
+const MAX_REPORTES = 17;
 
 const oyentes = new Set();
 let estado = { incidentes: [], seq: 0, ultimoNuevo: null, confirmados: [] };
@@ -163,7 +163,8 @@ const elegir = (lista) => lista[Math.floor(Math.random() * lista.length)];
 const entre = (a, b) => a + Math.random() * (b - a);
 
 export const simular = async () => {
-  if (!listo || estado.incidentes.length >= MAX_REPORTES) return;
+  const sinResolver = estado.incidentes.filter((i) => i.estado !== "resuelto").length;
+  if (!listo || sinResolver >= MAX_SIN_RESOLVER) return;
   const tipo = elegir(LISTA_TIPOS).id;
   let x, y;
   if (Math.random() < 0.5) {
