@@ -1,0 +1,22 @@
+// Paleta tomada del prototipo ReporteYa (verde oscuro + fondo claro)
+export const COLORES = {
+  fondo: "#E9F0EC",
+  superficie: "#FFFFFF",
+  superficie2: "#F3F7F4",
+  texto: "#12251C",
+  suave: "#56685E",
+  linea: "#D4DFD8",
+  barra: "#0D3A2B",
+  barraSuave: "#A4C8B6",
+  acento: "#16794F",
+  acentoClaro: "#DCF2E6",
+  peligro: "#C62F2F",
+  peligroClaro: "#FDE3E3",
+  aviso: "#8A5D00",
+  avisoClaro: "#FCEFC6",
+  ok: "#1B7443",
+  okClaro: "#DBF2E3",
+  info: "#1B64B0",
+  infoClaro: "#DCEBFA",
+  mapaFondo: "#DBE4DE",
+};
